@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import Pk_library as PKL
 
 
 
@@ -95,40 +96,21 @@ def npy_loader(path):
 
 ## Powerspectrum functions:
 
-def binavg(pk,k_min, k_max, kgrid,nkbins):
-    '''
-    Bin averaging for the powerspectrum calculations
-    '''
-    kgrid[0,0] = 1.0
-    ikbin = np.digitize(kgrid,np.linspace(k_min,k_max,nkbins+1),right=False)
 
-    nmodes,pkavg,kmean = np.zeros(nkbins,dtype=int),np.full(nkbins,0.),np.full(nkbins,0.)
-    for ik in range(nkbins):
-        nmodes[ik] = int(np.sum(np.array([ikbin == ik+1])))
-        if (nmodes[ik] > 0):
-            pkavg[ik] = np.mean(pk[ikbin == ik+1])
-            kmean[ik] = np.mean(kgrid[ikbin == ik+1])
-
-    return pkavg, nmodes, kmean
-
-def PS(density_field):
-    data = (anti_s2(denorm(density_field)))
-    ## Defining the grid in 2-D:
-    kx = 2. * np.pi * np.fft.fftfreq(128, d=1.)
-    ky = 2. * np.pi * np.fft.fftfreq(128, d=1.)
-    kgrid = np.sqrt(kx[:,np.newaxis]**2.0 + kx[np.newaxis,:]**2.0)
-
-    k_min = 0.0
-    k_max = 3.14   ## k_max = 128*pi/512 ##the Nyquist frequency calculated using the number of pixes * pi/physical length of the array
-    nkbins = 16    ## to find and estimate for this calculate the fundamental frequency kf = 2*pi/512^1/3
-                  ## --> in our case kf = 2*pi/Area_box^{1/2}. And then kmax-kmin/kf ~ nkbins
-
-  ## For data1:
-    delta_r = data
-    delta_k = np.fft.fftn(delta_r)
-    pk = np.real(delta_k * np.conj(delta_k))
-    pkavg, nmodes, kmean = binavg(pk, k_min, k_max, kgrid, nkbins)
-    return np.column_stack((kmean, pkavg))
+def PS(normalized_data):
+    delta = (anti_s2(normalized_data))
+    # parameters
+    grid    = 128     #the map will have grid^2 pixels
+    BoxSize = 512.0  #Mpc/h
+    MAS     = 'None'#'CIC'  #MAS used to create the image; 'NGP', 'CIC', 'TSC', 'PCS' o 'None'
+    threads = 1       #number of openmp threads
+    # compute the Pk of the image
+    Pk2D = PKL.Pk_plane(delta, BoxSize, MAS, threads)
+    # get the attributes of the routine
+    k      = Pk2D.k      #k in h/Mpc
+    Pk     = Pk2D.Pk     #Pk in (Mpc/h)^2
+    Nmodes = Pk2D.Nmodes #Number of modes in the different k bins
+    return np.column_stack((k,Pk))
 
 def calculate_mean_PS(PS_matrix):
     pk_matrix = PS_matrix[:, :, 1]  # Extract the second value of the third dimension
@@ -151,38 +133,7 @@ def PS_loss(model_VAE,test_images,train_images):
 
 
 
-def powerspectrum_i(data, color, alpha = 0.8, label = None):
-    data = (anti_s2(denorm(data)))
-    ## Defining the grid in 2-D:
-    kx = 2. * np.pi * np.fft.fftfreq(128, d=1.)
-    ky = 2. * np.pi * np.fft.fftfreq(128, d=1.)
-    kgrid = np.sqrt(kx[:,np.newaxis]**2.0 + kx[np.newaxis,:]**2.0)
 
-    k_min = 0.0
-    k_max = 3.14   ## k_max = 128*pi/512 ##the Nyquist frequency calculated using the number of pixes * pi/physical length of the array
-    nkbins = 16    ## to find and estimate for this calculate the fundamental frequency kf = 2*pi/512^1/3
-  	              ## --> in our case kf = 2*pi/Area_box^{1/2}. And then kmax-kmin/kf ~ nkbins
-
-	## For data1:
-
-    delta_r = data
-    delta_k = np.fft.fftn(delta_r)
-    pk = np.real(delta_k * np.conj(delta_k))
-    pkavg, nmodes, kmean = binavg(pk,k_min, k_max, kgrid,nkbins)
-
-    h = 0.7
-    # Plotting the results:
-
-    plt.figure(1,figsize=(5.5,4.5))
-    plt.plot(kmean,pkavg, color = color, linewidth=1.2, alpha = alpha, label = label) ## Need to figure out the units here
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.xlabel(r'$k$ [h $\mathrm{Mpc^{-1}}$]', fontsize = 13)
-    plt.ylabel(r'$P(k)$', fontsize = 13)
-    plt.tick_params(right=True, top=True, direction='in', which = 'both')
-    plt.tick_params(which='major', length=4)
-    plt.tight_layout()
-    plt.legend()
 
 
 
