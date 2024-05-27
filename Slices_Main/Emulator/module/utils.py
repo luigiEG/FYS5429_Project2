@@ -98,7 +98,7 @@ def npy_loader(path):
 
 
 def PS(normalized_data):
-    delta = (anti_s2(normalized_data))
+    delta = anti_s2(denorm(normalized_data))
     # parameters
     grid    = 128     #the map will have grid^2 pixels
     BoxSize = 512.0  #Mpc/h
