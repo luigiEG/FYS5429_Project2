@@ -145,6 +145,20 @@ def mean_PS_from_dataloader(dataloader, model=None):
                 ps.append(PS(recon_image))
     return np.mean(ps, axis=0)
 
+def std_PS_from_dataloader(dataloader, model=None):
+    if model is None:
+        ps = []
+        for i, (images, _) in enumerate(dataloader):
+            ps.append(PS(images[0][0].numpy()))
+    else:
+        ps = []
+        with torch.no_grad():
+
+            for i, (images, _) in enumerate(dataloader):
+                recon_images, _, _ = model(images)
+                recon_image = recon_images[0][0].numpy()
+                ps.append(PS(recon_image))
+    return np.std(ps, axis=0)
 
 
 
