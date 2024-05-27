@@ -38,21 +38,6 @@ def normalization(x) :
 def s2(x):
     return (2*x / (x + a)) - 1
 
-def binavg(pk,k_min, k_max, kgrid,nkbins):
-    '''
-    Bin averaging for the powerspectrum calculations
-    '''
-    kgrid[0,0] = 1.0
-    ikbin = np.digitize(kgrid,np.linspace(k_min,k_max,nkbins+1),right=False)
-
-    nmodes,pkavg,kmean = np.zeros(nkbins,dtype=int),np.full(nkbins,0.),np.full(nkbins,0.)
-    for ik in range(nkbins):
-        nmodes[ik] = int(np.sum(np.array([ikbin == ik+1])))
-        if (nmodes[ik] > 0):
-            pkavg[ik] = np.mean(pk[ikbin == ik+1])
-            kmean[ik] = np.mean(kgrid[ikbin == ik+1])
-
-    return pkavg, nmodes, kmean
 
 
 
@@ -98,7 +83,7 @@ def npy_loader(path):
 
 
 def PS(normalized_data):
-    delta = anti_s2(denorm(normalized_data))
+    delta = denorm(anti_s2(normalized_data))
     # parameters
     grid    = 128     #the map will have grid^2 pixels
     BoxSize = 512.0  #Mpc/h
