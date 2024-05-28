@@ -87,7 +87,7 @@ def PowerSpectrum(normalized_data):
     # parameters
     grid    = 128     #the map will have grid^2 pixels
     BoxSize = 512.0  #Mpc/h
-    MAS     = 'CIC'#'CIC'  #MAS used to create the image; 'NGP', 'CIC', 'TSC', 'PCS' o 'None'
+    MAS     = 'None'#'CIC'  #MAS used to create the image; 'NGP', 'CIC', 'TSC', 'PCS' o 'None'
     threads = 1       #number of openmp threads
     # compute the Pk of the image
     Pk2D = PKL.Pk_plane(delta, BoxSize, MAS, threads)
