@@ -82,12 +82,12 @@ def npy_loader(path):
 ## Powerspectrum functions:
 
 
-def PS(normalized_data):
+def PowerSpectrum(normalized_data):
     delta = denorm(anti_s2(normalized_data))
     # parameters
     grid    = 128     #the map will have grid^2 pixels
     BoxSize = 512.0  #Mpc/h
-    MAS     = 'None'#'CIC'  #MAS used to create the image; 'NGP', 'CIC', 'TSC', 'PCS' o 'None'
+    MAS     = 'CIC'#'CIC'  #MAS used to create the image; 'NGP', 'CIC', 'TSC', 'PCS' o 'None'
     threads = 1       #number of openmp threads
     # compute the Pk of the image
     Pk2D = PKL.Pk_plane(delta, BoxSize, MAS, threads)
@@ -109,8 +109,8 @@ def PS_loss(model_VAE,test_images,train_images):
     recon_images, _, _ = model_VAE(test_images) 
     recon_images = recon_images.detach().numpy().squeeze() 
     train_images = train_images.detach().numpy().squeeze() 
-    PS_recon = np.array([PS(image) for image in recon_images])
-    PS_train = np.array([PS(image) for image in train_images])
+    PS_recon = np.array([PowerSpectrum(image) for image in recon_images])
+    PS_train = np.array([PowerSpectrum(image) for image in train_images])
     mean_train_PS = calculate_mean_PS(PS_train)
     mean_recon_PS = calculate_mean_PS(PS_recon)
 
@@ -134,7 +134,7 @@ def mean_PS_from_dataloader(dataloader, model=None):
     if model is None:
         ps = []
         for i, (images, _) in enumerate(dataloader):
-            ps.append(PS(images[0][0].numpy()))
+            ps.append(PowerSpectrum(images[0][0].numpy()))
     else:
         ps = []
         with torch.no_grad():
@@ -142,14 +142,14 @@ def mean_PS_from_dataloader(dataloader, model=None):
             for i, (images, _) in enumerate(dataloader):
                 recon_images, _, _ = model(images)
                 recon_image = recon_images[0][0].numpy()
-                ps.append(PS(recon_image))
+                ps.append(PowerSpectrum(recon_image))
     return np.mean(ps, axis=0)
 
 def std_PS_from_dataloader(dataloader, model=None):
     if model is None:
         ps = []
         for i, (images, _) in enumerate(dataloader):
-            ps.append(PS(images[0][0].numpy()))
+            ps.append(PowerSpectrum(images[0][0].numpy()))
     else:
         ps = []
         with torch.no_grad():
@@ -157,8 +157,8 @@ def std_PS_from_dataloader(dataloader, model=None):
             for i, (images, _) in enumerate(dataloader):
                 recon_images, _, _ = model(images)
                 recon_image = recon_images[0][0].numpy()
-                ps.append(PS(recon_image))
-    return np.std(ps, axis=0)
+                ps.append(PowerSpectrum(recon_image))
+    return np.mean(np.std(ps, axis=0))
 
 
 
