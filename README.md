@@ -2,6 +2,7 @@
 Authors: Marta Corioni, Luigi Ernesto Ghezzer
 
 This is the repository relative to the second project for the course FYS5429 at UiO 
+
 Report is under the name of "Project_2.pdf"
 ## Abstract:
 Quick generation of mock data is essential for analysis and understanding of large-scale structures in the universe. Machine learning techniques have gained attention in cosmology for their
